@@ -1,7 +1,7 @@
-import ZCRer as z
 import numpy as np
 import soundfile as sf
 import glob
+import os
 from scipy import spatial
 
 def ZCR(signal):
@@ -38,18 +38,18 @@ def findSimilarity(one,two):
 
 def main():
     yes_path = os.path.dirname(__file__) + "/train/yes/*.wav"
-    ZCR_yes = z.fileZCR(yes_path)
+    ZCR_yes = fileZCR(yes_path)
     no_path = os.path.dirname(__file__) + "/train/no/*.wav"
-    ZCR_no = z.fileZCR(no_path)
+    ZCR_no = fileZCR(no_path)
 
     yes_test = glob.glob(os.path.dirname(__file__) + "/test/yes/*.wav")
     no_test = glob.glob(os.path.dirname(__file__) + "/test/no/*.wav")
 
     for file in yes_test+no_test:
         data,fs = sf.read(file)
-        test = z.ZCR(data)
-        yes_sim = z.findSimilarity(test,ZCR_yes)
-        no_sim = z.findSimilarity(test,ZCR_no)
+        test = ZCR(data)
+        yes_sim = findSimilarity(test,ZCR_yes)
+        no_sim = findSimilarity(test,ZCR_no)
         ans = False
         if(yes_sim > no_sim):
             ans=True

@@ -1,55 +1,72 @@
-import ZCRer as z
-import os
+import ZCRer
 import myTTS
-import pyaudio
-import wave
-import struct
-import numpy
-import soundfile as sf
+from PIL import Image
+import os
+import random
+import time
+import matplotlib.pyplot as plt
+import matplotlib.image as mimg
 
-# tts = myTTS.myTTS()
-# tts.playText("Hello my name is amjad the boss")
-# tts.close()
+attr = \
+    {
+        "Are you a %s": ["Boy","Girl"],
+        "Do you have %s eyes?": ["brown","blue"],
+        "Do you have %s hair?": ["dark","blonde"],
+        "Are you wearing a %s shirt?": ["white","blue","yellow","pink","red"],
+        "Are you %?": ["white","black"],
+        "Do you work as a %s": ["doctor","carpenter","student","cook","dancer","soccer player","police","gamer","none"]
+    }
+charInfo = [
+            [1,"Girl", "dark", "brown", "white", "white", "doctor"],
+            [2,"M", "dark", "blue", "blue", "white", "carpenter"],
+            [3,"M", "blonde", "brown", "blue", "white", "none"],
+            [4,"M", "blonde", "blue", "yellow", "white", "student"],
+            [5,"Girl", "blonde", "blue", "pink", "white", "cook"],
+            [6,"Girl", "blonde", "blue", "white", "white", "none"],
+            [7,"Girl", "dark", "blue", "pink", "white", "dancer"],
+            [8,"Girl", "dark", "brown", "red", "black", "none"],
+            [9,"M", "dark", "brown", "red", "black", "soccer player"],
+            [10,"M", "blonde", "blue", "blue", "white", "police"],
+            [11,"M", "dark", "blue", "blue", "white", "gaming"],
+            [12,"Girl", "blonde", "brown", "blue", "white", "none"]
+            ]
 
-audio = pyaudio.PyAudio()
-stream = audio.open(format=pyaudio.paInt16, channels=1,
-                    rate=44100,input=True,
-                    frames_per_buffer=1024)
-print("Recording...")
-frames=[]
-animation="||||||||||///////////----------\\\\\\\\\\\\\\\\\\"
-idx=0
-for i in range(0,int(44100 / 1024 * 2)):
-    print(animation[idx % len(animation)], end="\r")
-    idx += 1
-    data = stream.read(1024)
-    frames.append(data)
-print("Finished!")
+def askQuestions():
+    rec = ZCRer.ZCRer()
+    tts = myTTS.myTTS()
+    qs = attr.copy()
+    sub = charInfo.copy()
+    while sub.__len__() > 1:
+        count = 0
+        if(count == 0):
+            rnd = 0
+        else:
+            rnd = random.randint(0,qs.items().__len__()-1)           
+        foundQ = list(qs.keys())[rnd]
+        count += 1
 
-# for i in range(0,len(frames))
-stream.stop_stream()
-stream.close()
-audio.terminate()
+        for j in qs[foundQ]:
+            toCompare = [y for x in sub for y in x]
+            if j in toCompare:
+                question = foundQ.replace("%s",j)
+                print(question)
+                tts.playText(question)
+                ans = rec.recordAnswer()
+                ans = rec.recognizeAnswer(ans,"test2/")
+                if ans:
+                    if j in qs[foundQ]:
+                        sub = [per for per in sub if j in per]
+                        del qs[foundQ]
+                        break
 
-waveFile = wave.open("mictest.wav", 'wb')
-waveFile.setnchannels(1)
-waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
-waveFile.setframerate(44100)
-waveFile.writeframes(b''.join(frames))
-waveFile.close()
+    print(sub)
+    tts.close()
+    rec.close()
+    img = mimg.imread(str(sub[0][0]) + ".jpg")
+    imgplot = plt.imshow(img)
+    plt.title("Guessed it!")
+    plt.axis("off")
+    plt.show()
 
-data,fs = sf.read(os.path.dirname(__file__)+"/mictest.wav")
-# data,fs = sf.read("mictest.wav")
-ZCR_test = z.ZCR(data)
-ZCR_yes = z.fileZCR(os.path.dirname(__file__)+"/test2/yes/*.wav")
-ZCR_no = z.fileZCR(os.path.dirname(__file__)+"/test2/no/*.wav")
+askQuestions()
 
-yes_sim = z.findSimilarity(ZCR_test,ZCR_yes)
-no_sim = z.findSimilarity(ZCR_test,ZCR_no)
-
-ans = False
-if(yes_sim > no_sim):
-    ans=True
-print(ans)
-print(yes_sim,no_sim)
-os.remove("mictest.wav")
