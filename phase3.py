@@ -40,10 +40,9 @@ waveFile.close()
 
 data,fs = sf.read(os.path.dirname(__file__)+"/mictest.wav")
 # data,fs = sf.read("mictest.wav")
-
 ZCR_test = z.ZCR(data)
-ZCR_yes = z.fileZCR(os.path.dirname(__file__)+"/train/yes/*.wav")
-ZCR_no = z.fileZCR(os.path.dirname(__file__)+"/train/no/*.wav")
+ZCR_yes = z.fileZCR(os.path.dirname(__file__)+"/test2/yes/*.wav")
+ZCR_no = z.fileZCR(os.path.dirname(__file__)+"/test2/no/*.wav")
 
 yes_sim = z.findSimilarity(ZCR_test,ZCR_yes)
 no_sim = z.findSimilarity(ZCR_test,ZCR_no)
